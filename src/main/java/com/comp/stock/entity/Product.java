@@ -5,6 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -21,11 +24,24 @@ public class Product extends Timestamped {
     private int quantity;
 
     @Column(nullable = false)
-    private int price;
+    private int restock;
 
-    public Product(String name, int quantity, int price) {
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "notification_history_id")
+    private NotificationHistory notificationHistory;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<UserNotification> userNotificationList = new ArrayList<>();
+
+    public Product(String name, int quantity, int restock, NotificationHistory notificationHistory) {
         this.name = name;
         this.quantity = quantity;
-        this.price = price;
+        this.restock = restock;
+        this.notificationHistory = notificationHistory;
+    }
+
+    public void restockProduct(int quantity) {
+        this.quantity += quantity;
+        this.restock++;
     }
 }

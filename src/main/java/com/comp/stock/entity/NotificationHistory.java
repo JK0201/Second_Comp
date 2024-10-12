@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NotificationHistory extends Timestamped {
 
@@ -14,20 +16,11 @@ public class NotificationHistory extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private int restock = 0;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
-
-    public NotificationHistory(int restock, Status status, Product product) {
-        this.product = product;
-        this.restock = restock;
+    public NotificationHistory(Status status) {
         this.status = status;
     }
 }

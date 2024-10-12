@@ -17,20 +17,12 @@ public class UserNotification extends Timestamped{
     @Column(nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
-    private int orders;
-
-    @Column(nullable = false)
-    private boolean notification = true;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public UserNotification(Long userId, int orders, boolean notification, Product product) {
+    public UserNotification(Long userId, Product product) {
         this.userId = userId;
-        this.orders = orders;
-        this.notification = notification;
         this.product = product;
     }
 }
