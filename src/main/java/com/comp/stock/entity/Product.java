@@ -26,22 +26,25 @@ public class Product extends Timestamped {
     @Column(nullable = false)
     private int restock;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "notification_history_id")
+    @OneToOne(mappedBy = "product")
     private NotificationHistory notificationHistory;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product")
     private List<UserNotification> userNotificationList = new ArrayList<>();
 
-    public Product(String name, int quantity, int restock, NotificationHistory notificationHistory) {
+    public Product(String name, int quantity, int restock) {
         this.name = name;
         this.quantity = quantity;
         this.restock = restock;
-        this.notificationHistory = notificationHistory;
     }
 
     public void restockProduct(int quantity) {
         this.quantity += quantity;
         this.restock++;
+    }
+
+    public void reduceQuantity(int quantity) {
+        if(this.quantity - quantity < 0) throw new RuntimeException("재고는 0개 미만이 될 수 없습니다.");
+        this.quantity -= quantity;
     }
 }

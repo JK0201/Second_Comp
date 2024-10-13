@@ -18,12 +18,7 @@ public class UserNotificationHistory extends Timestamped{
     @JoinColumn(name = "notification_history_id")
     private NotificationHistory notificationHistory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_notification_id")
-    private UserNotification userNotification;
-
     public UserNotificationHistory (NotificationHistory notificationHistory, UserNotification userNotification) {
         this.notificationHistory = notificationHistory;
-        this.userNotification = userNotification;
     }
 }

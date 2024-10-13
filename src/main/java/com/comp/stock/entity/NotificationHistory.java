@@ -20,7 +20,12 @@ public class NotificationHistory extends Timestamped {
     @Column(nullable = false)
     private Status status;
 
-    public NotificationHistory(Status status) {
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    public NotificationHistory(Status status, Product product) {
         this.status = status;
+        this.product = product;
     }
 }

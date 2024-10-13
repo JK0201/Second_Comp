@@ -6,13 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    @Query("select p from Product p where p.id = :productId")
+    Product findByIdWithOutFetchJoin(Long productId);
+
     @Query("select p from Product p " +
             "join fetch p.notificationHistory " +
-            "left join fetch p.userNotificationList u " +
+            "left join fetch p.userNotificationList " +
             "where p.id = :productId")
-    Product findByIdWithNotificationHistory(@Param("productId") Long productId);
+    Product findByIdWithFetchJoin(@Param("productId") Long productId);
 }

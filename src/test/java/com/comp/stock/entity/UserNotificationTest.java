@@ -1,17 +1,19 @@
 package com.comp.stock.entity;
 
+import com.comp.stock.repository.NotificationHistoryRepository;
 import com.comp.stock.repository.ProductRepository;
 import com.comp.stock.repository.UserNotificationRepository;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.annotation.Rollback;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 class UserNotificationTest {
@@ -20,10 +22,10 @@ class UserNotificationTest {
     private ProductRepository productRepository;
 
     @Autowired
-    private UserNotificationRepository userNotificationRepository;
+    private NotificationHistoryRepository notificationHistoryRepository;
 
     @Autowired
-    private EntityManager em;
+    private UserNotificationRepository userNotificationRepository;
 
     private Long productId;
 
@@ -32,12 +34,11 @@ class UserNotificationTest {
         String name = "product1";
         int quantity = 0;
         int restock = 0;
+        Status status = Status.CANCELED_BY_SOLD_OUT;
 
-        NotificationHistory notificationHistory = new NotificationHistory(Status.COMPLETED);
-
-        // Product와 Notification Hisotry를 저장
-        Product product = new Product(name, quantity, restock, notificationHistory);
-        productRepository.saveAndFlush(product);
+        Product product = new Product(name, quantity, restock);
+        NotificationHistory notificationHistory = new NotificationHistory(status, product);
+        notificationHistoryRepository.saveAndFlush(notificationHistory);
 
         productId = product.getId();
     }
@@ -45,50 +46,34 @@ class UserNotificationTest {
     @AfterEach
     void after() throws Exception {
         userNotificationRepository.deleteAll();
+        notificationHistoryRepository.deleteAll();
         productRepository.deleteAll();
     }
 
+
     @Test
-    @Transactional
-    void 상품_재입고_알림o() throws Exception {
+    @Rollback(false)
+    void 유저_알림_추가() throws Exception {
         //given
-        int quantity = 100;
         Long userId = 1L;
 
-        Product notificationProduct = productRepository.findById(productId).orElseThrow();
-        UserNotification userNotification = new UserNotification(userId, notificationProduct);
-        userNotificationRepository.save(userNotification);
-        em.flush();
-        em.clear();
-
         //when
-        // Product와 Notification Hisotry, User Notification을 함께 가져옴
-        Product product = productRepository.findByIdWithNotificationHistory(productId);
-        NotificationHistory notificationHistory = product.getNotificationHistory();
-        List<UserNotification> userNotificationList = product.getUserNotificationList();
+        Product product = productRepository.findById(productId).orElseThrow();
+        List<UserNotification> userNotificationList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            UserNotification userNotification = new UserNotification(userId, product);
+            userNotificationList.add(userNotification);
+        }
 
-        Status status;
-        // 조건에 따라서 Notification History 값 변경
-        if (userNotificationList.isEmpty()) status = Status.COMPLETED;
-        else status = Status.IN_PROGRESS;
-
-        notificationHistory.setStatus(status);
-        product.restockProduct(quantity);
-        em.flush();
-        em.clear();
+        userNotificationRepository.saveAllAndFlush(userNotificationList);
 
         //then
-        Product foundProduct = productRepository.findById(productId).orElseThrow();
-        Long expectedProductId = 1L;
-        int expectedQuantity = 100;
-        int expectedRestock = 1;
-        Status expectedStatus = Status.IN_PROGRESS;
-        Long expectedUserId = 1L;
+        int expectedSize = 10;
 
-        assertEquals(foundProduct.getId(), expectedProductId);
-        assertEquals(foundProduct.getQuantity(), expectedQuantity);
-        assertEquals(foundProduct.getRestock(), expectedRestock);
-        assertEquals(foundProduct.getNotificationHistory().getStatus(), expectedStatus);
-        assertEquals(foundProduct.getUserNotificationList().get(0).getUserId(), expectedUserId);
+        Product foundProduct = productRepository.findByIdWithFetchJoin(productId);
+        List<UserNotification> foundUserNotificationList = foundProduct.getUserNotificationList();
+
+        assertEquals(foundProduct.getId(), productId);
+        assertEquals(foundUserNotificationList.size(), expectedSize);
     }
 }
