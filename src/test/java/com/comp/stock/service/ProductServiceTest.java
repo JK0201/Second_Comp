@@ -1,9 +1,10 @@
 package com.comp.stock.service;
 
-import com.comp.stock.entity.Product;
-import com.comp.stock.entity.UserNotification;
-import com.comp.stock.repository.ProductRepository;
-import com.comp.stock.repository.UserNotificationRepository;
+import com.comp.stock.notification.product_user_notification.entity.ProductUserNotification;
+import com.comp.stock.notification.product_user_notification.service.ProductUserNotificationService;
+import com.comp.stock.product.entity.Product;
+import com.comp.stock.product.repository.ProductRepository;
+import com.comp.stock.product.service.ProductService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,21 +19,22 @@ import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-class StockServiceTest {
+class ProductServiceTest {
 
     @Autowired
-    private StockService stockService;
+    private ProductService productService;
 
     @Autowired
     private ProductRepository productRepository;
+
     @Autowired
-    private UserNotificationRepository userNotificationRepository;
+    private ProductUserNotificationService productUserNotificationService;
 
     @BeforeEach
     public void before() throws Exception {
-        stockService.addProduct("product1");
-        stockService.addProduct("product2");
-        stockService.addProduct("product3");
+        productService.addProduct("product1");
+        productService.addProduct("product2");
+        productService.addProduct("product3");
     }
 
     @AfterEach
@@ -48,11 +50,11 @@ class StockServiceTest {
         Long productId3 = 3L;
 
         //when
-        int threadCount = 900;
-        ExecutorService executorService = Executors.newFixedThreadPool(100);
+        int threadCount = 3000;
+        ExecutorService executorService = Executors.newFixedThreadPool(300);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        for (int i = 0; i < 300; i++) {
+        for (int i = 0; i < 1000; i++) {
             Long userId = (long) (i + 1);
             executorService.submit(() -> {
                 addNotification(latch, userId, productId1);
@@ -72,19 +74,19 @@ class StockServiceTest {
 
     private void addNotification(CountDownLatch latch, Long userId, Long productId) {
         try {
-            stockService.addNotification(userId, productId);
+            productUserNotificationService.addNotification(userId, productId);
         } finally {
             latch.countDown();
         }
     }
 
     private void checkAssertions(Long productId) {
-        int expectedSize = 300;
+        int expectedSize = 1000;
 
         Product foundProduct = productRepository.findByIdWithFetchJoin(productId);
-        List<UserNotification> userNotificationList = foundProduct.getUserNotificationList();
+        List<ProductUserNotification> productUserNotificationList = foundProduct.getProductUserNotificationList();
 
         assertEquals(foundProduct.getId(), productId);
-        assertEquals(userNotificationList.size(), expectedSize);
+        assertEquals(productUserNotificationList.size(), expectedSize);
     }
 }

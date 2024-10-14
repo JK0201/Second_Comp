@@ -1,5 +1,8 @@
-package com.comp.stock.entity;
+package com.comp.stock.notification.product_notification.entity;
 
+import com.comp.stock.entity.Status;
+import com.comp.stock.entity.Timestamped;
+import com.comp.stock.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class NotificationHistory extends Timestamped {
+public class ProductNotificationHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +27,7 @@ public class NotificationHistory extends Timestamped {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public NotificationHistory(Status status, Product product) {
+    public ProductNotificationHistory(Status status, Product product) {
         this.status = status;
         this.product = product;
     }

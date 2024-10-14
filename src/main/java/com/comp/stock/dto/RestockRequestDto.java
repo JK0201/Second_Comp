@@ -5,8 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class NotificationRequestDto {
-    private Long userId;
-    private int active;
+public class RestockRequestDto {
     private Long productId;
+    private int quantity;
 }

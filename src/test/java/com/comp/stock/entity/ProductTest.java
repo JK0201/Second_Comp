@@ -1,7 +1,9 @@
 package com.comp.stock.entity;
 
-import com.comp.stock.repository.NotificationHistoryRepository;
-import com.comp.stock.repository.ProductRepository;
+import com.comp.stock.notification.product_notification.entity.ProductNotificationHistory;
+import com.comp.stock.product.entity.Product;
+import com.comp.stock.notification.product_notification.repository.ProductNotificationHistoryRepository;
+import com.comp.stock.product.repository.ProductRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ProductTest {
 
     @Autowired
-    private NotificationHistoryRepository notificationHistoryRepository;
+    private ProductNotificationHistoryRepository productNotificationHistoryRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -28,39 +30,36 @@ class ProductTest {
 
     @BeforeEach
     public void before() throws Exception {
-        String name = "product1";
-        int quantity = 0;
         int restock = 0;
-        Status status = Status.CANCELED_BY_SOLD_OUT;
+        int quantity = 0;
+        Status status = Status.COMPLETED;
 
         // Product와 Notification Hisotry를 초기화 및 저장
-        Product product = new Product(name, quantity, restock);
-        NotificationHistory notificationHistory = new NotificationHistory(status, product);
-        notificationHistoryRepository.saveAndFlush(notificationHistory);
+        Product product = new Product(quantity, restock);
+        ProductNotificationHistory productNotificationHistory = new ProductNotificationHistory(status, product);
+        productNotificationHistoryRepository.saveAndFlush(productNotificationHistory);
 
         productId = product.getId();
     }
 
     @AfterEach
     public void after() throws Exception {
-        notificationHistoryRepository.deleteAll();
+        productNotificationHistoryRepository.deleteAll();
         productRepository.deleteAll();
     }
 
     @Test
     void 상품_초기화_테스트() throws Exception {
         //given
-        String expectedName = "product1";
-        int expectedQuantity = 0;
         int expectedRestock = 0;
-        Status expectedStatus = Status.CANCELED_BY_SOLD_OUT;
+        int expectedQuantity = 0;
+        Status expectedStatus = Status.COMPLETED;
 
         //when && then
         Product foundProduct = productRepository.findById(productId).orElseThrow();
-        assertEquals(foundProduct.getName(), expectedName);
         assertEquals(foundProduct.getQuantity(), expectedQuantity);
         assertEquals(foundProduct.getRestock(), expectedRestock);
-        assertEquals(foundProduct.getNotificationHistory().getStatus(), expectedStatus);
+        assertEquals(foundProduct.getProductNotificationHistory().getStatus(), expectedStatus);
     }
 
     @Test
