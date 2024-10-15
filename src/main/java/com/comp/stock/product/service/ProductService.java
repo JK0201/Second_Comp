@@ -1,7 +1,7 @@
 package com.comp.stock.product.service;
 
-import com.comp.stock.notification.product_notification.entity.ProductNotificationHistory;
-import com.comp.stock.product.entity.Product;
+import com.comp.stock.entity.ProductNotificationHistory;
+import com.comp.stock.entity.Product;
 import com.comp.stock.entity.Status;
 import com.comp.stock.notification.product_notification.repository.ProductNotificationHistoryRepository;
 import com.comp.stock.product.repository.ProductRepository;
@@ -22,7 +22,7 @@ public class ProductService {
     public void addProduct(String name) {
         Product product = new Product(0, 0);
         Status status = Status.COMPLETED;
-        ProductNotificationHistory productNotificationHistory = new ProductNotificationHistory(status, product);
+        ProductNotificationHistory productNotificationHistory = new ProductNotificationHistory(status,0,0L, product);
         productNotificationHistoryRepository.save(productNotificationHistory);
     }
 

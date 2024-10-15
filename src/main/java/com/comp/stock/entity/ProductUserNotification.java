@@ -1,12 +1,9 @@
-package com.comp.stock.notification.product_user_notification.entity;
+package com.comp.stock.entity;
 
-import com.comp.stock.entity.Timestamped;
-import com.comp.stock.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 
 @Entity
 @Getter

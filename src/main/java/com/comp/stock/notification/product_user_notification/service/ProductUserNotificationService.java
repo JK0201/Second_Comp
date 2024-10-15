@@ -1,8 +1,8 @@
 package com.comp.stock.notification.product_user_notification.service;
 
-import com.comp.stock.notification.product_user_notification.entity.ProductUserNotification;
+import com.comp.stock.entity.ProductUserNotification;
 import com.comp.stock.notification.product_user_notification.repository.ProductUserNotificationRepository;
-import com.comp.stock.product.entity.Product;
+import com.comp.stock.entity.Product;
 import com.comp.stock.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

@@ -1,14 +1,8 @@
 package com.comp.stock.notification.product_notification.service;
 
 import com.comp.stock.entity.*;
-import com.comp.stock.notification.product_notification.entity.ProductNotificationHistory;
-import com.comp.stock.notification.product_notification.entity.ProductUserNotificationHistory;
-import com.comp.stock.notification.product_user_notification.entity.ProductUserNotification;
-import com.comp.stock.product.entity.Product;
-import com.comp.stock.notification.product_notification.repository.ProductNotificationHistoryRepository;
-import com.comp.stock.product.repository.ProductRepository;
 import com.comp.stock.notification.product_notification.repository.ProductUserNotificationHistoryRepository;
-import com.comp.stock.notification.product_user_notification.repository.ProductUserNotificationRepository;
+import com.comp.stock.product.repository.ProductRepository;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -24,16 +19,15 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class ProductNotificationService {
 
     private final ConcurrentLinkedDeque<ProductUserNotification> notificationDeque = new ConcurrentLinkedDeque<>();
-    private final RateLimiter rateLimiter = RateLimiter.create(1000);
+    // 초당 500건 제한
+    private final RateLimiter rateLimiter = RateLimiter.create(500, 1, TimeUnit.SECONDS);
 
-    private final ProductNotificationHistoryRepository productNotificationHistoryRepository;
-    private final ProductUserNotificationRepository productUserNotificationRepository;
     private final ProductRepository productRepository;
     private final ProductUserNotificationHistoryRepository productUserNotificationHistoryRepository;
 
     @Transactional
     public void sendNotifications(Long productId) {
-        Product product = productRepository.findByIdWithFetchJoin(productId);
+        Product product = productRepository.findByIdAndActive(productId);
 
         if (product.getProductNotificationHistory().getStatus() == Status.CANCELED_BY_ERROR) {
             updateStatus(product, Status.IN_PROGRESS);
@@ -62,13 +56,12 @@ public class ProductNotificationService {
     public void processNotifications(Product product) {
         while (!notificationDeque.isEmpty()) {
             rateLimiter.acquire();
-            long currentTime = System.currentTimeMillis();
 
+            // Queue에 저장된 순서대로 알림을 보냄
             ProductUserNotification notification = notificationDeque.pollFirst();
             if (notification != null) {
                 sendNotification(notification);
-                saveNotificationHistory(product, notification.getUserId());
-                productUserNotificationRepository.delete(notification);
+                saveNotificationHistory(product, notification);
             }
         }
     }
@@ -77,8 +70,9 @@ public class ProductNotificationService {
         log.info("Notification sent to userId : " + notification.getUserId());
     }
 
-    private void saveNotificationHistory(Product product, Long userId) {
-        ProductUserNotificationHistory history = new ProductUserNotificationHistory(product, userId);
+    private void saveNotificationHistory(Product product, ProductUserNotification notification) {
+        product.getProductNotificationHistory().setRecentUserId(notification.getUserId());
+        ProductUserNotificationHistory history = new ProductUserNotificationHistory(product, notification);
         productUserNotificationHistoryRepository.save(history);
     }
 

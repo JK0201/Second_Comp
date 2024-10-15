@@ -1,0 +1,41 @@
+version: '3'
+services:
+  stock-mysql:
+    image: mysql:8.0
+    ports:
+      - 3307:3306
+    networks:
+      - stock
+    environment:
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "password"
+      MYSQL_DATABASE: "stock"
+      MYSQL_ROOT_PASSWORD: "password"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+    restart: always
+
+  stock-backend:
+    build: .
+    image: stock:1.0.0-compose
+    ports:
+      - 80:8080
+    networks:
+      - stock
+    environment:
+      DB_URL: "stock-mysql"
+      DB_PORT: "3306"
+    depends_on:
+      - stock-mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 512M
+    restart: on-failure
+
+networks:
+  stock:

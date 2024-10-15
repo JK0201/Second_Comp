@@ -1,7 +1,5 @@
-package com.comp.stock.product.entity;
+package com.comp.stock.entity;
 
-import com.comp.stock.notification.product_notification.entity.ProductNotificationHistory;
-import com.comp.stock.notification.product_user_notification.entity.ProductUserNotification;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,6 +37,7 @@ public class Product {
     public void restockProduct(int quantity) {
         this.quantity += quantity;
         this.restock++;
+        this.productNotificationHistory.setRestock(this.restock);
     }
 
     public void reduceQuantity(int quantity) {
